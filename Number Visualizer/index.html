@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8"/>
+        <title>Number Visualizer</title>
+    </head>
+    <body style="margin:0px;">
+        <canvas id="myCanvas"></canvas>
+        <script>
+            canvas = document.getElementById("myCanvas");
+            ctx = canvas.getContext("2d");
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+
+            class Point{
+                constructor(x, y){
+                    this.x = x;
+                    this.y = y;
+                }
+            };
+
+            function drawPolygonAndGetPoints(side, p, c, r){
+
+                let mod = Math.sqrt( Math.pow(c.x - p.x, 2) + Math.pow(c.y - p.y, 2) );
+                let theta = -Math.atan((c.x - p.x)/(c.y - p.y));
+                let alpha = Math.PI*2/side;
+                let points = [];
+                let defangle = theta;
+                ctx.beginPath();
+                if (false){
+                    let theta = 0;//-Math.acos((c.y - p.y)/mod);
+                    ctx.moveTo(c.x + r*Math.cos( defangle),c.y + r*Math.sin( defangle));
+                    for (let i = 1; i <= side; i++){
+                        ctx.lineTo(c.x + r*Math.cos( defangle + (alpha*i)),c.y + r*Math.sin( defangle + (alpha*i)));
+                        ctx.moveTo(c.x + r*Math.cos( defangle + (alpha*i)),c.y + r*Math.sin( defangle + (alpha*i)));
+
+                        points.push(new Point(c.x + r*Math.cos( defangle + (alpha*(i - 1))),c.y + r*Math.sin( defangle + (alpha*(i - 1)))));
+                    }
+                }
+                else{
+                    ctx.moveTo(c.x + r*Math.cos( defangle),c.y + r*Math.sin( defangle));
+                    for (let i = 1; i <= side; i++){
+                        ctx.lineTo(c.x + r*Math.cos( defangle + (alpha*i)),c.y + r*Math.sin( defangle + (alpha*i)));
+                        ctx.moveTo(c.x + r*Math.cos( defangle + (alpha*i)),c.y + r*Math.sin( defangle + (alpha*i)));
+
+                        points.push(new Point(c.x + r*Math.cos( defangle + (alpha*(i - 1))),c.y + r*Math.sin( defangle + (alpha*(i - 1)))));
+                    }
+                }
+
+                ctx.fill();
+                ctx.stroke();
+                ctx.closePath();
+
+                return points;
+            }
+
+            function getFactor(n){
+                let factor = [];
+                let k = 2;
+                while(n > 1){
+                    if (n % k == 0){
+                        factor.push(k);
+                        n = n/k;
+                    }
+                    else{
+                        k++;
+                    }
+                }
+
+                return factor;
+            }
+
+
+            let F = getFactor(19);
+            function visualize(i, p, c, r){
+                if (i < F.length){
+                    let point = drawPolygonAndGetPoints(F[i], p, c, r);
+                    if (i + 1 < F.length){
+                        for (let j = 0; j < point.length; j++){
+                            visualize(i + 1, c, point[j], r/Math.sqrt(F[i + 1]));
+                        }
+                    }
+                }
+
+            }
+
+            function clear(){
+                ctx.fillStyle = "white";
+                ctx.beginPath();
+                ctx.fillRect(0,0,canvas.width, canvas.height);
+                ctx.closePath();
+            }
+
+            visualize(0, new Point(500,100), new Point(500,300), 200);
+            let x = 1;
+            function update(){
+                clear();
+                F = getFactor(x);
+                visualize(0, new Point(canvas.width/2,canvas.height), new Point(canvas.width/2, canvas.height/2), 250);
+                document.onmousedown = function(e){
+                    x++;
+                }
+
+                document.onkeydown = function(e) {
+
+                    if (e.keyCode == '38') {
+                        x += 50;
+                    }
+                    else if (e.keyCode == '40') {
+                        x -= 50;
+                    }
+                    if (e.keyCode == '37') {
+                    x--;
+                    }
+                    else if (e.keyCode == '39') {
+                    x++;
+                    }
+
+                }
+                ctx.beginPath();
+                ctx.font = "30px Arial";
+                ctx.strokeText(x, 50, 50);
+                ctx.closePath();
+
+                requestAnimationFrame(update);
+            }
+
+            requestAnimationFrame(update);
+
+        </script>
+    </body>
+</html>
